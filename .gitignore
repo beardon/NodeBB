@@ -26,3 +26,7 @@ pidfile
 # templates
 /public/templates
 /public/sounds
+
+# Intellij
+.idea/
+*.iml
