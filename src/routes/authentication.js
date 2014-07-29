@@ -200,7 +200,8 @@
 				}
 				/* End backwards compatibility block */
 
-				app.post('/logout', logout);
+                app.get('/logout', logoutRedirect); // short-circuit CSRF protection
+                app.post('/logout', logout);
 				app.post('/register', register);
 				app.post('/login', login);
 			});
