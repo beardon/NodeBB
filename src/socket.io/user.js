@@ -4,6 +4,7 @@ var	async = require('async'),
 	user = require('../user'),
 	groups = require('../groups'),
 	topics = require('../topics'),
+	messaging = require('../messaging'),
 	utils = require('./../../public/src/utils'),
 	meta = require('../meta'),
 	SocketUser = {};
@@ -139,7 +140,6 @@ SocketUser.changePicture = function(socket, data, callback) {
 			if(err) {
 				return callback(err);
 			}
-
 		});
 		return;
 	}
@@ -171,18 +171,48 @@ SocketUser.unfollow = function(socket, data, callback) {
 
 SocketUser.getSettings = function(socket, data, callback) {
 	if (socket.uid) {
-		user.getSettings(socket.uid, callback);
+		if (socket.uid === parseInt(data.uid, 10)) {
+			return user.getSettings(socket.uid, callback);
+		}
+
+		user.isAdministrator(socket.uid, function(err, isAdmin) {
+			if (err) {
+				return callback(err);
+			}
+
+			if (!isAdmin) {
+				return callback(new Error('[[error:no-privileges]]'));
+			}
+
+			user.getSettings(data.uid, callback);
+		});
 	}
 };
 
 SocketUser.saveSettings = function(socket, data, callback) {
-	if (socket.uid && data) {
-		user.saveSettings(socket.uid, data, callback);
+	if (!socket.uid || !data) {
+		return callback(new Error('[[error:invalid-data]]'));
 	}
+
+	if (socket.uid === parseInt(data.uid, 10)) {
+		return user.saveSettings(socket.uid, data.settings, callback);
+	}
+
+	user.isAdministrator(socket.uid, function(err, isAdmin) {
+		if (err) {
+			return callback(err);
+		}
+
+		if (!isAdmin) {
+			return callback(new Error('[[error:no-privileges]]'));
+		}
+
+		user.saveSettings(data.uid, data.settings, callback);
+	});
 };
 
 SocketUser.setTopicSort = function(socket, sort, callback) {
-	if(socket.uid) {
+	if (socket.uid) {
 		user.setSetting(socket.uid, 'topicPostSort', sort, callback);
 	}
 };
@@ -214,6 +244,10 @@ SocketUser.getOnlineAnonCount = function(socket, data, callback) {
 
 SocketUser.getUnreadCount = function(socket, data, callback) {
 	topics.getTotalUnread(socket.uid, callback);
+};
+
+SocketUser.getUnreadChatCount = function(socket, data, callback) {
+	messaging.getUnreadCount(socket.uid, callback);
 };
 
 SocketUser.getActiveUsers = function(socket, data, callback) {

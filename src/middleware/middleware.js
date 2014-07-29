@@ -108,7 +108,7 @@ middleware.checkTopicIndex = function(req, res, next) {
 		var topicIndex = parseInt(req.params.topic_index, 10);
 		topicCount = parseInt(topicCount, 10) + 1;
 		var url = '';
-		
+
 		if (topicIndex > topicCount) {
 			url = '/category/' + req.params.category_id + '/' + req.params.slug + '/' + topicCount;
 			return res.locals.isAPI ? res.json(302, url) : res.redirect(url);
@@ -189,45 +189,6 @@ middleware.checkAccountPermissions = function(req, res, next) {
 		});
 	});
 };
-
-/* Chat related middlewares */
-
-middleware.chat = {};
-middleware.chat.getMetadata = function(req, res, next) {
-	async.waterfall([
-		async.apply(user.getUidByUserslug, req.params.userslug),
-		function(toUid, next) {
-			user.getUserFields(toUid, ['uid', 'username'], next);
-		}
-	], function(err, chatData) {
-		if (!err) {
-			res.locals.chatData = chatData;
-		}
-
-		next();
-	});
-};
-
-middleware.chat.getContactList = function(req, res, next) {
-	user.getFollowing(req.user.uid, function(err, contacts) {
-		res.locals.contacts = contacts;
-		next();
-	});
-};
-
-middleware.chat.getMessages = function(req, res, next) {
-	if (res.locals.chatData) {
-		messaging.getMessages(req.user.uid, res.locals.chatData.uid, false, function(err, messages) {
-			res.locals.messages = messages;
-			next();
-		});
-	} else {
-		res.locals.messages = [];
-		next();
-	}
-};
-
-/* End Chat Middlewares */
 
 middleware.buildHeader = function(req, res, next) {
 	res.locals.renderHeader = true;
@@ -462,6 +423,15 @@ middleware.routeTouchIcon = function(req, res) {
 			maxAge: app.enabled('cache') ? 5184000000 : 0
 		});
 	}
+};
+
+middleware.addExpiresHeaders = function(req, res, next) {
+	if (app.enabled('cache')) {
+		res.setHeader("Cache-Control", "public, max-age=5184000");
+		res.setHeader("Expires", new Date(Date.now() + 5184000000).toUTCString());
+	}
+
+	next();
 };
 
 module.exports = function(webserver) {

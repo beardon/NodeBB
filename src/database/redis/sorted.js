@@ -68,6 +68,22 @@ module.exports = function(redisClient, module) {
 		});
 	};
 
+	module.isSortedSetMembers = function(key, values, callback) {
+		var multi = redisClient.multi();
+		for (var i=0; i<values.length; ++i) {
+			multi.zscore(key, values[i]);
+		}
+		multi.exec(function(err, results) {
+			if (err) {
+				return callback(err);
+			}
+			results = results.map(function(score) {
+				return !!score;
+			});
+			callback(null, results);
+		});
+	};
+
 	module.sortedSetsScore = function(keys, value, callback) {
 		multi('zscore', keys, value, callback);
 	};
@@ -91,16 +107,6 @@ module.exports = function(redisClient, module) {
 	};
 
 	function sortedSetUnion(sets, reverse, start, stop, callback) {
-		// start and stop optional
-		if (typeof start === 'function') {
-			callback = start;
-			start = 0;
-			stop = -1;
-		} else if (typeof stop === 'function') {
-			callback = stop;
-			stop = -1;
-		}
-
 		var	multi = redisClient.multi();
 
 		// zunionstore prep

@@ -158,6 +158,7 @@
 					winston.error('filter:auth.init - plugin failure');
 				}
 
+				var deprecList = [];
 				for (var i in login_strategies) {
 					if (login_strategies.hasOwnProperty(i)) {
 						var strategy = login_strategies[i];
@@ -168,6 +169,7 @@
 							Ref: nodebb/nodebb#1849
 						*/
 						if (strategy.icon.slice(0, 3) !== 'fa-') {
+							deprecList.push(strategy.name);
 							strategy.icon = 'fa-' + strategy.icon + '-square';
 						}
 						/* End backwards compatibility block */
@@ -185,7 +187,19 @@
 					}
 				}
 
-                app.get('/logout', logoutRedirect); // short-circuit CSRF protection
+				/*
+					Backwards compatibility block for v0.6.0
+					Remove this upon release of v0.6.0-1
+					Ref: nodebb/nodebb#1849
+				*/
+				if (deprecList.length) {
+					winston.warn('[plugins] Deprecation notice: SSO plugins should now pass in the full fontawesome icon name (e.g. "fa-facebook-o"). Please update the following plugins:');
+					for(var x=0,numDeprec=deprecList.length;x<numDeprec;x++) {
+						process.stdout.write('  * ' + deprecList[x] + '\n');
+					}
+				}
+				/* End backwards compatibility block */
+
 				app.post('/logout', logout);
 				app.post('/register', register);
 				app.post('/login', login);

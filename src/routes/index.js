@@ -112,24 +112,20 @@ function accountRoutes(app, middleware, controllers) {
 	app.get('/user/:userslug/edit', middleware.buildHeader, middleware.checkGlobalPrivacySettings, middleware.checkAccountPermissions, controllers.accounts.accountEdit);
 	app.get('/api/user/:userslug/edit', middleware.checkGlobalPrivacySettings, middleware.checkAccountPermissions, controllers.accounts.accountEdit);
 
-	// todo: admin recently gained access to this page, pls check if it actually works
 	app.get('/user/:userslug/settings', middleware.buildHeader, middleware.checkGlobalPrivacySettings, middleware.checkAccountPermissions, controllers.accounts.accountSettings);
 	app.get('/api/user/:userslug/settings', middleware.checkGlobalPrivacySettings, middleware.checkAccountPermissions, controllers.accounts.accountSettings);
 
 	app.get('/notifications', middleware.buildHeader, middleware.authenticate, controllers.accounts.getNotifications);
 	app.get('/api/notifications', middleware.authenticate, controllers.accounts.getNotifications);
 
-	app.get('/chats', middleware.buildHeader, middleware.authenticate, middleware.chat.getContactList, controllers.accounts.getChats);
-	app.get('/api/chats', middleware.authenticate, middleware.chat.getContactList, controllers.accounts.getChats);
-	app.get('/chats/:userslug', middleware.buildHeader, middleware.authenticate, middleware.chat.getMetadata, middleware.chat.getContactList, middleware.chat.getMessages, controllers.accounts.getChats);
-	app.get('/api/chats/:userslug', middleware.authenticate, middleware.chat.getMetadata, middleware.chat.getContactList, middleware.chat.getMessages, controllers.accounts.getChats);
+	app.get('/chats/:userslug?', middleware.buildHeader, middleware.authenticate, controllers.accounts.getChats);
+	app.get('/api/chats/:userslug?', middleware.authenticate, controllers.accounts.getChats);
 }
 
 function userRoutes(app, middleware, controllers) {
 	app.get('/users', middleware.buildHeader, middleware.checkGlobalPrivacySettings, controllers.users.getOnlineUsers);
 	app.get('/api/users', middleware.checkGlobalPrivacySettings, controllers.users.getOnlineUsers);
 
-	// was this duped by accident or purpose?
 	app.get('/users/online', middleware.buildHeader, middleware.checkGlobalPrivacySettings, controllers.users.getOnlineUsers);
 	app.get('/api/users/online', middleware.checkGlobalPrivacySettings, controllers.users.getOnlineUsers);
 
@@ -161,7 +157,7 @@ module.exports = function(app, middleware) {
 			relativePath = nconf.get('relative_path');
 
 		router.render = function() {
-			app.render.call(arguments);
+			app.render.apply(app, arguments);
 		};
 
 		app.all(relativePath + '/api/*', middleware.updateLastOnlineTime, middleware.prepareAPI);
@@ -192,7 +188,7 @@ module.exports = function(app, middleware) {
 		userRoutes(router, middleware, controllers);
 		groupRoutes(router, middleware, controllers);
 
-		plugins.fireHook('filter:app.load', router, middleware, controllers, function() {
+		plugins.fireHook('static:app.load', router, middleware, controllers, function() {
 			app.use(relativePath, router);
 
 			app.use(relativePath, express.static(path.join(__dirname, '../../', 'public'), {

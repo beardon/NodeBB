@@ -4,7 +4,7 @@
 /* globals app, define, ajaxify, utils, translator, config */
 
 
-define('navigator', ['forum/topic/pagination'], function(pagination) {
+define('navigator', ['forum/pagination'], function(pagination) {
 
 	var navigator = {};
 	var index = 1;
@@ -191,7 +191,7 @@ define('navigator', ['forum/topic/pagination'], function(pagination) {
 				scrollTo.parent().find('.topic-item').addClass('highlight');
 				setTimeout(function() {
 					scrollTo.parent().find('.topic-item').removeClass('highlight');
-				}, 5000);
+				}, 3000);
 			}
 		}
 

@@ -188,6 +188,36 @@ var async = require('async'),
 		});
 	};
 
+	Posts.getRecentPosterUids = function(start, end, callback) {
+		db.getSortedSetRevRange('posts:pid', start, end, function(err, pids) {
+			if (err) {
+				return callback(err);
+			}
+
+			if (!Array.isArray(pids) || !pids.length) {
+				return callback(null, []);
+			}
+
+			pids = pids.map(function(pid) {
+				return 'post:' + pid;
+			});
+
+			db.getObjectsFields(pids, ['uid'], function(err, postData) {
+				if (err) {
+					return callback(err);
+				}
+
+				postData = postData.map(function(post) {
+					return post && post.uid;
+				}).filter(function(value, index, array) {
+					return value && array.indexOf(value) === index;
+				});
+
+				callback(null, postData);
+			});
+		});
+	};
+
 	Posts.getUserInfoForPosts = function(uids, callback) {
 		user.getMultipleUserFields(uids, ['uid', 'username', 'userslug', 'reputation', 'postcount', 'picture', 'signature', 'banned'], function(err, userData) {
 			if (err) {
@@ -282,13 +312,12 @@ var async = require('async'),
 				post.category = results.topicCategory.category;
 				post.index = results.index;
 
-				if (options.stripTags) {
+				if (options.stripTags && results.content) {
 					var s = S(results.content);
 					post.content = s.stripTags.apply(s, utils.stripTags).s;
 				} else {
 					post.content = results.content;
 				}
-
 
 				callback(null, post);
 			});

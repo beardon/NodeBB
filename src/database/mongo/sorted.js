@@ -132,6 +132,22 @@ module.exports = function(db, module) {
 		});
 	};
 
+	module.isSortedSetMembers = function(key, values, callback) {
+		values = values.map(helpers.valueToString);
+		db.collection('objects').find({_key: key, value: {$in: values}}).toArray(function(err, results) {
+			if (err) {
+				return callback(err);
+			}
+			results = results.map(function(item) {
+				return item.value;
+			});
+			values = values.map(function(value) {
+				return results.indexOf(value) !== -1;
+			});
+			callback(err, results);
+		});
+	};
+
 	module.sortedSetsScore = function(keys, value, callback) {
 		value = helpers.valueToString(value);
 		db.collection('objects').find({_key:{$in:keys}, value: value}).toArray(function(err, result) {
@@ -139,11 +155,12 @@ module.exports = function(db, module) {
 				return callback(err);
 			}
 
-			var returnData = [],
+			var map = helpers.toMap(result),
+				returnData = [],
 				item;
 
 			for(var i=0; i<keys.length; ++i) {
-				item = helpers.findItem(result, keys[i]);
+				item = map[keys[i]];
 				returnData.push(item ? item.score : null);
 			}
 
@@ -160,14 +177,6 @@ module.exports = function(db, module) {
 	};
 
 	function getSortedSetUnion(sets, sort, start, stop, callback) {
-		if (typeof start === 'function') {
-			callback = start;
-			start = 0;
-			stop = -1;
-		} else if (typeof stop === 'function') {
-			callback = stop;
-			stop = -1;
-		}
 		var limit = stop - start + 1;
 		if (limit <= 0) {
 			limit = 0;

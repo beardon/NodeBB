@@ -52,7 +52,10 @@ var socket,
 
 			app.enterRoom(room, true);
 
-			socket.emit('meta.reconnected', {}, function(err, cacheBuster) {
+			socket.emit('meta.reconnected');
+
+			socket.removeAllListeners('event:nodebb.ready');
+			socket.on('event:nodebb.ready', function(cacheBuster) {
 				if (app.cacheBuster !== cacheBuster) {
 					app.cacheBuster = cacheBuster;
 
@@ -147,22 +150,16 @@ var socket,
 				app.alert({
 					title: '[[global:alert.banned]]',
 					message: '[[global:alert.banned.message]]',
-					type: 'warning',
+					type: 'danger',
 					timeout: 1000
 				});
 
-				setTimeout(app.logout, 1000);
+				setTimeout(function() {
+					window.location.href = RELATIVE_PATH + '/';
+				}, 1000);
 			});
 
 			app.enterRoom('global');
-
-			// if (config.environment === 'development' && console && console.log) {
-			// 	var log = console.log;
-			// 	console.log = function() {
-			// 		log.apply(this, arguments);
-			// 		socket.emit('tools.log', arguments);
-			// 	};
-			// }
 
 			app.cacheBuster = config['cache-buster'];
 
@@ -413,6 +410,9 @@ var socket,
 	}
 
 	function createHeaderTooltips() {
+		if (utils.findBootstrapEnvironment() === 'xs') {
+			return;
+		}
 		$('#header-menu li i[title]').each(function() {
 			$(this).parents('a').tooltip({
 				placement: 'bottom',
@@ -442,7 +442,7 @@ var socket,
 		}
 
 		searchButton.off().on('click', function(e) {
-			if (!config.isLoggedIn && !config.allowGuestSearching) {
+			if (!config.loggedIn && !config.allowGuestSearching) {
 				app.alert({
 					message:'[[error:search-requires-login]]',
 					timeout: 3000

@@ -28,7 +28,7 @@ var ajaxify = ajaxify || {};
 	function onAjaxError(err, url) {
 		var data = err.data, textStatus = err.textStatus;
 
-		$('#content, #footer').stop(true, true).removeClass('ajaxifying');
+		$('#content, #footer').removeClass('ajaxifying');
 
 		if (data) {
 			if (data.status === 404) {
@@ -78,9 +78,11 @@ var ajaxify = ajaxify || {};
 				}, url, RELATIVE_PATH + '/' + url + hash);
 			}
 
-			translator.load(tpl_url);
+			translator.load(config.defaultLang, tpl_url);
 
 			$('#footer, #content').removeClass('hide').addClass('ajaxifying');
+			var animationDuration = parseFloat($('#content').css('transition-duration')) || 0.2,
+				startTime = (new Date()).getTime();
 
 			ajaxify.variables.flush();
 			ajaxify.loadData(url, function(err, data) {
@@ -92,8 +94,18 @@ var ajaxify = ajaxify || {};
 
 				templates.parse(tpl_url, data, function(template) {
 					translator.translate(template, function(translatedTemplate) {
-						$('#content').html(translatedTemplate);
-						ajaxify.widgets.render(tpl_url, url, function() {
+						setTimeout(function() {
+							$('#content').html(translatedTemplate);
+							ajaxify.widgets.render(tpl_url, url, function() {
+								$(window).trigger('action:ajaxify.end', {url: url});
+							});
+
+							ajaxify.variables.parse();
+
+							$(window).trigger('action:ajaxify.contentLoaded', {url: url});
+
+							ajaxify.loadScript(tpl_url);
+
 							if (typeof callback === 'function') {
 								callback();
 							}
@@ -104,14 +116,8 @@ var ajaxify = ajaxify || {};
 							ajaxify.initialLoad = false;
 
 							app.refreshTitle(url);
-							$(window).trigger('action:ajaxify.end', {url: url});
-						});
+						}, animationDuration * 1000 - ((new Date()).getTime() - startTime))
 
-						ajaxify.variables.parse();
-
-						$(window).trigger('action:ajaxify.contentLoaded', {url: url});
-
-						ajaxify.loadScript(tpl_url);
 					});
 				});
 			});
@@ -190,11 +196,9 @@ var ajaxify = ajaxify || {};
 
 		$(window).trigger('action:ajaxify.loadingData', {url: url});
 
-		if (ajaxify.preloader && ajaxify.preloader[url]) {
-			setTimeout(function() {
-				callback(null, ajaxify.preloader[url].data);
-				ajaxify.preloader[url] = null;
-			}, 100);
+		if (ajaxify.preloader && ajaxify.preloader[url] && !ajaxify.preloader[url].loading) {
+			callback(null, ajaxify.preloader[url].data);
+			ajaxify.preloader = {};
 			return;
 		}
 
@@ -307,13 +311,16 @@ var ajaxify = ajaxify || {};
 				var url = this.href.replace(rootUrl + '/', ''),
 					currentTime = (new Date()).getTime();
 
-				if (!ajaxify.preloader[url] || currentTime - ajaxify.preloader[url].lastFetched > PRELOADER_RATE_LIMIT) {
-					ajaxify.preloader[url] = null;
+				if (!ajaxify.preloader[url] || (!ajaxify.preloader[url].loading && currentTime - ajaxify.preloader[url].lastFetched > PRELOADER_RATE_LIMIT)) {
+					ajaxify.preloader[url] = {
+						loading: true
+					};
 					ajaxify.loadData(url, function(err, data) {
 						ajaxify.preloader[url] = err ? null : {
 							url: url,
 							data: data,
-							lastFetched: currentTime
+							lastFetched: currentTime,
+							loading: false
 						};
 					});
 				}

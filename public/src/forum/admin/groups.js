@@ -80,15 +80,15 @@ define('forum/admin/groups', ['forum/admin/iconSelect'], function(iconSelect) {
 				socket.emit('admin.groups.get', groupName, function(err, groupObj) {
 					var formEl = detailsModal.find('form');
 
-					formEl.find('#change-group-name').val(groupObj.name);
+					formEl.find('#change-group-name').val(groupObj.name).prop('readonly', groupObj.system);
 					formEl.find('#change-group-desc').val(groupObj.description);
 					formEl.find('#change-group-user-title').val(groupObj.userTitle);
 					formEl.find('#group-icon').attr('class', 'fa fa-2x ' + groupObj.icon).attr('value', groupObj.icon);
 					formEl.find('#change-group-label-color').val(groupObj.labelColor);
 					formEl.find('#group-label-preview').css('background', groupObj.labelColor || '#000000').text(groupObj.userTitle);
+					groupMembersEl.empty();
 
 					if (groupObj.members.length > 0) {
-						groupMembersEl.empty();
 						for (var x = 0; x < groupObj.members.length; x++) {
 							var memberIcon = $('<li />')
 								.attr('data-uid', groupObj.members[x].uid)

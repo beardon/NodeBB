@@ -259,7 +259,7 @@ var async = require('async'),
 					return !!topic;
 				});
 
-				callback(null, topics);
+				plugins.fireHook('filter:topics.get', topics, callback);
 			});
 		});
 	};
@@ -304,7 +304,9 @@ var async = require('async'),
 				topicData.locked = parseInt(topicData.locked, 10) === 1;
 				topicData.pinned = parseInt(topicData.pinned, 10) === 1;
 
-				callback(null, topicData);
+				plugins.fireHook('filter:topic.get', topicData, function(err, topicData) {
+					callback(null, topicData);
+				});
 			});
 		});
 	};
