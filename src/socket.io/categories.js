@@ -4,7 +4,6 @@ var	async = require('async'),
 	db = require('../database'),
 	categories = require('../categories'),
 	privileges = require('../privileges'),
-	meta = require('../meta'),
 	user = require('../user'),
 
 	SocketCategories = {};
@@ -42,6 +41,10 @@ SocketCategories.loadMore = function(socket, data, callback) {
 	}, function(err, results) {
 		if (err) {
 			return callback(err);
+		}
+
+		if (!results.privileges.read) {
+			return callback(new Error('[[error:no-privileges]]'));
 		}
 
 		var start = parseInt(data.after, 10),

@@ -96,11 +96,12 @@ var ajaxify = ajaxify || {};
 					translator.translate(template, function(translatedTemplate) {
 						setTimeout(function() {
 							$('#content').html(translatedTemplate);
+
+							ajaxify.variables.parse();
+
 							ajaxify.widgets.render(tpl_url, url, function() {
 								$(window).trigger('action:ajaxify.end', {url: url});
 							});
-
-							ajaxify.variables.parse();
 
 							$(window).trigger('action:ajaxify.contentLoaded', {url: url});
 
@@ -203,7 +204,7 @@ var ajaxify = ajaxify || {};
 		}
 
 		var location = document.location || window.location,
-			api_url = (url === '' || url === '/') ? 'home' : url,
+			api_url = (url === RELATIVE_PATH || url === '/' + RELATIVE_PATH) ? 'home' : url,
 			tpl_url = ajaxify.getCustomTemplateMapping(url.split('?')[0]);
 
 		if (!tpl_url) {
@@ -257,7 +258,7 @@ var ajaxify = ajaxify || {};
 		}
 
 		function hrefEmpty(href) {
-			return href === undefined || href === '' || href === 'javascript:;' || href === window.location.href + "#" || href.slice(-1) === "#";
+			return href === undefined || href === '' || href === 'javascript:;' || href === window.location.href + "#" || href.slice(0, 1) === "#";
 		}
 
 		// Enhancing all anchors to ajaxify...
@@ -289,12 +290,11 @@ var ajaxify = ajaxify || {};
 					}
 				} else if (window.location.pathname !== '/outgoing') {
 					// External Link
-
-					if (config.useOutgoingLinksPage) {
-						ajaxify.go('outgoing?url=' + encodeURIComponent(this.href));
-						e.preventDefault();
-					} else if (config.openOutgoingLinksInNewTab) {
+					if (config.openOutgoingLinksInNewTab) {
 						window.open(this.href, '_blank');
+						e.preventDefault();
+					} else if (config.useOutgoingLinksPage) {
+						ajaxify.go('outgoing?url=' + encodeURIComponent(this.href));
 						e.preventDefault();
 					}
 				}
@@ -330,9 +330,9 @@ var ajaxify = ajaxify || {};
 
 		templates.registerLoader(ajaxify.loadTemplate);
 
-		$.when($.getJSON(RELATIVE_PATH + '/templates/config.json'), $.getJSON(RELATIVE_PATH + '/api/get_templates_listing')).done(function (config_data, templates_data) {
-			templatesConfig = config_data[0];
-			availableTemplates = templates_data[0];
+		$.getJSON(RELATIVE_PATH + '/api/get_templates_listing', function (data) {
+			templatesConfig = data.templatesConfig;
+			availableTemplates = data.availableTemplates;
 
 			app.load();
 		});

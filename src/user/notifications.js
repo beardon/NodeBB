@@ -17,8 +17,6 @@ var async = require('async'),
 (function(UserNotifications) {
 
 	UserNotifications.get = function(uid, callback) {
-
-
 		function getNotifications(set, start, stop, iterator, done) {
 			db.getSortedSetRevRange(set, start, stop, function(err, uniqueIds) {
 				if(err) {
@@ -57,6 +55,7 @@ var async = require('async'),
 								}
 
 								db.sortedSetRemove(set, nidsToUniqueIds[nid]);
+								db.deleteObjectField('uid:' + uid + ':notifications:uniqueId:nid', nidsToUniqueIds[nid]);
 								return next();
 							}
 
@@ -143,7 +142,7 @@ var async = require('async'),
 				}
 
 				notifs = notifs.filter(function(notif) {
-					return notif !== null;
+					return !!notif;
 				}).sort(function(a, b) {
 					return parseInt(b.datetime, 10) - parseInt(a.datetime, 10);
 				}).map(function(notif) {
@@ -264,6 +263,7 @@ var async = require('async'),
 					bodyLong: results.postContent,
 					path: nconf.get('relative_path') + '/topic/' + results.topic.slug + '/' + results.postIndex,
 					uniqueId: 'topic:' + tid + ':uid:' + uid,
+					tid: tid,
 					from: uid
 				}, function(err, nid) {
 					if (err) {

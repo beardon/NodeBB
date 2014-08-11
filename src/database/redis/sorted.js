@@ -2,6 +2,7 @@
 
 module.exports = function(redisClient, module) {
 	module.sortedSetAdd = function(key, score, value, callback) {
+		callback = callback || function() {};
 		redisClient.zadd(key, score, value, callback);
 	};
 
@@ -52,6 +53,14 @@ module.exports = function(redisClient, module) {
 
 	module.sortedSetRank = function(key, value, callback) {
 		redisClient.zrank(key, value, callback);
+	};
+
+	module.sortedSetsRanks = function(keys, values, callback) {
+		var multi = redisClient.multi();
+		for(var i=0; i<values.length; ++i) {
+			multi.zrank(keys[i], values[i]);
+		}
+		multi.exec(callback);
 	};
 
 	module.sortedSetRevRank = function(key, value, callback) {
@@ -117,11 +126,7 @@ module.exports = function(redisClient, module) {
 		multi[reverse ? 'zrevrange' : 'zrange']('temp', start, stop);
 		multi.del('temp');
 		multi.exec(function(err, results) {
-			if (!err && typeof callback === 'function') {
-				callback(null, results[1]);
-			} else if (err) {
-				callback(err);
-			}
+			callback(err, results ? results[1] : null);
 		});
 	}
 };

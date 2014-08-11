@@ -6,6 +6,7 @@ var db = require('./database'),
 	user = require('./user'),
 	plugins = require('./plugins'),
 	meta = require('./meta'),
+	utils = require('../public/src/utils'),
 	notifications = require('./notifications'),
 	userNotifications = require('./user/notifications');
 
@@ -87,14 +88,16 @@ var db = require('./database'),
 	Messaging.getMessages = function(fromuid, touid, isNew, callback) {
 		var uids = sortUids(fromuid, touid);
 
-		db.getSortedSetRange('messages:uid:' + uids[0] + ':to:' + uids[1], -((meta.config.chatMessagesToDisplay || 50) - 1), -1, function(err, mids) {
+		db.getSortedSetRevRange('messages:uid:' + uids[0] + ':to:' + uids[1], 0, (meta.config.chatMessagesToDisplay || 50) - 1, function(err, mids) {
 			if (err) {
 				return callback(err);
 			}
 
-			if (!mids || !mids.length) {
+			if (!Array.isArray(mids) || !mids.length) {
 				return callback(null, []);
 			}
+
+			mids.reverse();
 
 			getMessages(mids, fromuid, touid, isNew, callback);
 		});
@@ -126,7 +129,7 @@ var db = require('./database'),
 						var self = parseInt(message.fromuid, 10) === parseInt(fromuid, 10);
 						message.fromUser = self ? userData[0] : userData[1];
 						message.toUser = self ? userData[1] : userData[0];
-						message.timestampISO = new Date(parseInt(message.timestamp, 10)).toISOString();
+						message.timestampISO = utils.toISOString(message.timestamp);
 						message.self = self ? 1 : 0;
 						message.newSet = false;
 
@@ -256,7 +259,9 @@ var db = require('./database'),
 		db.sortedSetAdd('uid:' + uid + ':chats:unread', Date.now(), toUid, callback);
 	};
 
-	// todo #1798 -- this utility method creates a room name given an array of uids.
+	/*
+	todo #1798 -- this utility method creates a room name given an array of uids.
+
 	Messaging.uidsToRoom = function(uids, callback) {
 		uid = parseInt(uid, 10);
 		if (typeof uid === 'number' && Array.isArray(roomUids)) {
@@ -272,7 +277,7 @@ var db = require('./database'),
 		} else {
 			callback(new Error('invalid-uid-or-participant-uids'));
 		}
-	};
+	};*/
 
 	Messaging.verifySpammer = function(uid, callback) {
 		var messagesToCompare = 10;

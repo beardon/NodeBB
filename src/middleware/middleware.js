@@ -6,7 +6,6 @@ var app,
 	path = require('path'),
 	winston = require('winston'),
 	validator = require('validator'),
-	fs = require('fs'),
 	nconf = require('nconf'),
 	plugins = require('./../plugins'),
 	meta = require('./../meta'),
@@ -161,11 +160,7 @@ middleware.checkAccountPermissions = function(req, res, next) {
 		}
 
 		if (!uid) {
-			if (res.locals.isAPI) {
-				return res.json(404, 'not-found');
-			} else {
-				return res.redirect('404');
-			}
+			return res.locals.isAPI ? res.json(404, 'not-found') : res.redirect(nconf.get('relative_path') + '/404');
 		}
 
 		if (parseInt(uid, 10) === callerUID) {
@@ -181,11 +176,7 @@ middleware.checkAccountPermissions = function(req, res, next) {
 				return next();
 			}
 
-			if (res.locals.isAPI) {
-				return res.json(403, 'not-allowed');
-			} else {
-				return res.redirect('403');
-			}
+			res.locals.isAPI ? res.json(403, 'not-allowed') : res.redirect(nconf.get('relative_path') + '/403');
 		});
 	});
 };
