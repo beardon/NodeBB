@@ -29,19 +29,6 @@
 		res.send(200);
 	}
 
-    function logoutRedirect(req, res) {
-   		if (req.user && parseInt(req.user.uid, 10) > 0) {
-   			winston.info('[Auth] Session ' + req.sessionID + ' logout (uid: ' + req.user.uid + ')');
-
-   			var ws = require('../socket.io');
-   			ws.logoutUser(req.user.uid);
-
-   			req.logout();
-   		}
-
-   		res.redirect('/');
-   	}
-
 	function login(req, res, next) {
 		var continueLogin = function() {
 			passport.authenticate('local', function(err, userData, info) {
@@ -197,7 +184,6 @@
 				}
 				/* End backwards compatibility block */
 
-                app.get('/logout', logoutRedirect); // short-circuit CSRF protection
                 app.post('/logout', logout);
 				app.post('/register', register);
 				app.post('/login', login);
