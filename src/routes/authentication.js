@@ -184,7 +184,7 @@
 				}
 				/* End backwards compatibility block */
 
-                app.post('/logout', logout);
+				app.post('/logout', logout);
 				app.post('/register', register);
 				app.post('/login', login);
 			});
