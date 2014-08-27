@@ -164,7 +164,7 @@ module.exports = function(app, data) {
 	app.use(relativePath + '/apple-touch-icon', middleware.routeTouchIcon);
 
     if (process.env.NODE_ENV === 'development') {
-        app.use(require('morgan')('dev'));
+        app.use(require('morgan')('combined'));
     }
 
     app.use(bodyParser.urlencoded({extended: true}));
