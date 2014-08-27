@@ -163,7 +163,11 @@ module.exports = function(app, data) {
 	app.use(favicon(path.join(__dirname, '../../', 'public', meta.config['brand:favicon'] ? meta.config['brand:favicon'] : 'favicon.ico')));
 	app.use(relativePath + '/apple-touch-icon', middleware.routeTouchIcon);
 
-	app.use(bodyParser.urlencoded({extended: true}));
+    if (process.env.NODE_ENV === 'development') {
+        app.use(require('morgan')('dev'));
+    }
+
+    app.use(bodyParser.urlencoded({extended: true}));
 	app.use(bodyParser.json());
 	app.use(cookieParser());
 
