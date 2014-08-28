@@ -38,7 +38,6 @@
     "nodebb-plugin-markdown": "~0.5.0",
     "nodebb-plugin-mentions": "~0.5.0",
     "nodebb-plugin-soundpack-default": "~0.1.1",
-    "nodebb-plugin-sso-ifsta": "^0.2.2",
     "nodebb-theme-ifsta-ui": "~0.1.3",
     "nodebb-theme-lavender": "~0.0.74",
     "nodebb-theme-vanilla": "~0.0.111",
