@@ -273,10 +273,10 @@ function enableDefaultTheme(next) {
 			return next(err);
 		}
 
-		winston.info('Enabling default theme: Lavender');
+		winston.info('Enabling default theme: IFSTA');
 		meta.themes.set({
 			type: 'local',
-			id: 'nodebb-theme-lavender'
+			id: 'nodebb-theme-ifsta-ui'
 		}, next);
 	});
 }
@@ -411,7 +411,8 @@ function enableDefaultPlugins(next) {
 		'nodebb-plugin-markdown',
 		'nodebb-plugin-mentions',
 		'nodebb-widget-essentials',
-		'nodebb-plugin-soundpack-default'
+		'nodebb-plugin-soundpack-default',
+        'nodebb-plugin-sso-ifsta'
 	];
 
 	async.each(defaultEnabled, function (pluginId, next) {
