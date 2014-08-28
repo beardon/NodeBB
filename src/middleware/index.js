@@ -167,7 +167,7 @@ module.exports = function(app, data) {
         app.use(require('morgan')('combined'));
     }
 
-    app.use(bodyParser.urlencoded({extended: true}));
+	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(bodyParser.json());
 	app.use(cookieParser());
 
