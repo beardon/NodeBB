@@ -169,7 +169,7 @@ module.exports = function(app, data) {
 
 	var cookie = {
 		maxAge: 1000 * 60 * 60 * 24 * parseInt(meta.configs.loginDays || 14, 10)
-	};                                                                                                                               re
+	};
 	if(meta.config.cookieDomain) {
 		cookie.domain = meta.config.cookieDomain;
 	}
