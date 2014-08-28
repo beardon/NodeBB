@@ -411,8 +411,7 @@ function enableDefaultPlugins(next) {
 		'nodebb-plugin-markdown',
 		'nodebb-plugin-mentions',
 		'nodebb-widget-essentials',
-		'nodebb-plugin-soundpack-default',
-		'nodebb-plugin-sso-ifsta'
+		'nodebb-plugin-soundpack-default'
 	];
 
 	async.each(defaultEnabled, function (pluginId, next) {

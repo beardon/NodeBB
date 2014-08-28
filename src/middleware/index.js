@@ -163,17 +163,13 @@ module.exports = function(app, data) {
 	app.use(favicon(path.join(__dirname, '../../', 'public', meta.config['brand:favicon'] ? meta.config['brand:favicon'] : 'favicon.ico')));
 	app.use(relativePath + '/apple-touch-icon', middleware.routeTouchIcon);
 
-    if (process.env.NODE_ENV === 'development') {
-        app.use(require('morgan')('combined'));
-    }
-
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(bodyParser.json());
 	app.use(cookieParser());
 
 	var cookie = {
 		maxAge: 1000 * 60 * 60 * 24 * parseInt(meta.configs.loginDays || 14, 10)
-	};
+	};                                                                                                                               re
 	if(meta.config.cookieDomain) {
 		cookie.domain = meta.config.cookieDomain;
 	}
@@ -194,7 +190,7 @@ module.exports = function(app, data) {
 		res.locals.csrf_token = req.csrfToken();
 		res.setHeader('X-Powered-By', 'NodeBB');
 
-//		res.setHeader('X-Frame-Options', 'SAMEORIGIN'); // TODO: turning this off due to iframe issues
+		res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 		if (meta.config['allow-from-uri']) {
 			res.setHeader('ALLOW-FROM', meta.config['allow-from-uri']);
 		}
